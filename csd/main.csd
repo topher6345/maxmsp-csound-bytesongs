@@ -1,0 +1,125 @@
+<CsoundSynthesizer> 
+<CsOptions> 
+</CsOptions> 
+<CsInstruments> 
+sr     = 44100 
+ksmps  = 1       
+nchnls = 2 
+
+#include 'pitchshifter.csd'
+#include 'moogladder.csd'
+#include 'vowel.csd'
+#include 'vowelenum.csd'
+#include 'taptube.csd'
+#include 'ensemble.csd'
+#include 'statevar.csd'
+
+
+#define ON #1#
+#define OFF #0#
+
+  ; Global Sine Wave
+	gir 	ftgen	 123, 0, 8192, 10, 1
+
+instr 1 
+  
+  kt init 0 
+  av init 0
+
+  gkslider2       chnget "gkslider2"
+  gkslider3       chnget "gkslider3"
+  gkslider4       chnget "gkslider4"
+  gkslider5       chnget "gkslider5"
+  gkslider6       chnget "gkslider6"
+  gkslider7       chnget "gkslider7"
+
+
+  ; Bytesong Generator
+  gkslider1 chnget "gkslider1"
+  aout = (kt*((kt>>10|kt>>8)&63&kt>>4*gkslider1)) & 255 
+  aout = aout << 7 
+
+  ; Filter 
+  gkmooglpcutoff chnget "gkmooglpcutoff"  
+  gkmooglpcutoff portk   gkmooglpcutoff, .05  
+  gkmooglpres     chnget "gkmooglpres"
+  aout Moogladder aout, gkmooglpcutoff, gkmooglpres  
+  aout dcblock aout 
+  kt = kt+1 
+
+  ; Reverb
+  gkreverbamount  chnget "gkreverbamount"  
+  gktremdepth     chnget "gktremdepth"
+  gktremspeed     chnget "gktremspeed"
+	alfo 	poscil3	 gktremdepth,gktremspeed , gir 
+  alfo = alfo*2 + 1
+  aout = aout *alfo
+
+  ; Pitch Shift
+  gkpitchshift chnget "gkpitchshift"
+  aout freqShift aout, gkpitchshift
+ 
+  ; Vibrato (Frequency Modulation)
+  gkvibratotoggle chnget "gkvibratotoggle"
+  gkvibratospeed  chnget "gkvibratospeed"
+  gkvibratodepth  chnget "gkvibratodepth"     
+  kvibrato  poscil3  gkvibratospeed,gkvibratodepth , gir 
+  if ($ON == gkvibratotoggle) then
+      aout freqShift aout, kvibrato
+  endif
+
+  ; Format Filter
+  gkvoweltoggle chnget "gkvoweltoggle"
+  gkvowel       chnget "gkvowel"
+  gkmode        chnget "gkmode"
+  if ($ON == gkvoweltoggle) then 
+    if ($BASS == gkmode) then 
+      avowel  vowel aout, gkvowel, $BASS
+      aout balance avowel, aout 
+    elseif ($TENOR == gkmode) then 
+      avowel  vowel aout, gkvowel, $TENOR
+      aout balance avowel, aout 
+    elseif ($COUNTERTENOR == gkmode) then 
+      avowel  vowel aout, gkvowel, $COUNTERTENOR
+      aout balance avowel, aout 
+    elseif ($ALTO == gkmode) then 
+      avowel  vowel aout, gkvowel, $ALTO
+      aout balance avowel, aout 
+    elseif ($SOPRANO == gkmode) then 
+      avowel  vowel aout, gkvowel, $SOPRANO
+      aout balance avowel, aout 
+    endif 
+  endif 
+
+
+  ; Tube Warmth
+  gktubetoggle     chnget "gktubetoggle"
+  gkdrive          chnget "gkdrive"
+  gkblend          chnget "gkblend"
+  if ($ON == gktubetoggle) then 
+    atube warmth aout, gkdrive, gkblend
+    aout balance atube, aout 
+  endif
+
+
+  ; Fuzz
+  gktanhamount chnget "gktanhamount"
+  gktanhtoggle chnget "gktanhtoggle"
+  if ($ON == gktanhtoggle) then 
+    atanh = tanh(aout*gktanhamount)
+    aout balance atanh, aout 
+  endif
+
+
+  ; Reverb
+  arev1, arev2 reverbsc aout,aout, gkreverbamount, 11000 
+  
+  
+  outs aout + arev1, aout + arev2 
+endin 
+
+</CsInstruments> 
+<CsScore> 
+i1 0 36000 
+</CsScore> 
+</CsoundSynthesizer> 
