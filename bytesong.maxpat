@@ -1865,7 +1865,7 @@
 					"patching_rect" : [ 591.0, 362.0, 259.0, 95.0 ],
 					"presentation" : 1,
 					"presentation_rect" : [ 112.666687, 290.0, 120.5, 76.0 ],
-					"setfilter" : [ 0, 1, 0, 0, 0, 3108.569824, 1.0, 0.5, 0.0001, 22050.0, 0.0001, 16.0, 0.5, 25.0 ]
+					"setfilter" : [ 0, 1, 0, 0, 0, 852.21698, 1.0, 0.5, 0.0001, 22050.0, 0.0001, 16.0, 0.5, 25.0 ]
 				}
 
 			}
@@ -1990,7 +1990,7 @@
 					"parameter_enable" : 1,
 					"patching_rect" : [ 954.666748, 470.0, 48.0, 136.0 ],
 					"presentation" : 1,
-					"presentation_rect" : [ 419.0, 266.0, 48.0, 100.0 ],
+					"presentation_rect" : [ 410.0, 266.0, 48.0, 100.0 ],
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
 							"parameter_longname" : "live.gain~",
