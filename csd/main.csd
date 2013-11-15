@@ -1,6 +1,6 @@
 <CsoundSynthesizer> 
-<CsOptions> 
-</CsOptions> 
+  <CsOptions> 
+  </CsOptions> 
 <CsInstruments> 
 sr     = 44100 
 ksmps  = 1       
@@ -25,11 +25,13 @@ nchnls = 2
 	gir 	ftgen	 123, 0, 8192, 10, 1
 
 instr 1 
+
+ ain inch 1
   
   kt init 0 
   av init 0
 
-  gkslider2       chnget "gkslider2"
+  gkincrement     chnget "gkincrement"
   gkslider3       chnget "gkslider3"
   gkslider4       chnget "gkslider4"
   gkslider5       chnget "gkslider5"
@@ -37,16 +39,18 @@ instr 1
   gkslider7       chnget "gkslider7"
 
   ; Bytesong Generator
-  gkslider1 chnget "gkslider1"
-  aout = (kt*((kt>>10|kt>>8)&63&kt>>4*gkslider1)) & 255 
+  gkbyte1 chnget "gkbyte1"
+  aout = (kt*((kt>>10|kt>>8)&63&kt>>4*gkbyte1)) & 255 
   aout = aout << 7 
-  kt = kt+1 
+  
+  ;aout = ain * aout 
+  kt = kt+gkincrement 
 
   ; Filter 
-  gkmooglpcutoff chnget "gkmooglpcutoff"  
-  gkmooglpcutoff portk   gkmooglpcutoff, .05  
+  gkmooglpcutoff  chnget "gkmooglpcutoff"  
+  gkmooglpcutoff  portk   gkmooglpcutoff, .05  
   gkmooglpres     chnget "gkmooglpres"
-  gkmooglptoggle chnget "gkmooglptoggle" 
+  gkmooglptoggle  chnget "gkmooglptoggle" 
   if ($ON == gkmooglptoggle) then  
     aout Moogladder aout, gkmooglpcutoff, gkmooglpres  
     aout dcblock aout 
@@ -65,20 +69,15 @@ instr 1
   gkmooglplfodepth  chnget "gkmooglplfodepth"
   gkmooglplfospeed  chnget "gkmooglplfospeed"
   gkmooglplfores    chnget "gkmooglplfores"
-
   gkmooglplfotoggle chnget "gkmooglplfotoggle"
   if ($ON == gkmooglplfotoggle) then  
-    
     kmooglfo  poscil3  gkmooglplfodepth,gkmooglplfospeed , gir 
-
     kmooglplfofreq = gkmooglplfocenter + kmooglfo
-
-    if (kmooglplfofreq > 19000) then 
-      kmooglplfofreq = 19000
+        if (kmooglplfofreq > 19000) then 
+            kmooglplfofreq = 19000
     elseif (kmooglplfofreq < 40) then
-      kmooglplfofreq = 40
+            kmooglplfofreq = 40
     endif 
-
     aout Moogladder aout,kmooglplfofreq , gkmooglplfores  
   endif
 
@@ -135,27 +134,18 @@ instr 1
     aout balance atube, aout 
   endif
 
-
-
   ; Safety
-
   aout butlp aout , 18000
 
-
   ; Statevar
-
   gkstatevarcutoff chnget "gkstatevarcutoff"
-  gkstatevarres chnget "gkstatevarres"
+  gkstatevarres    chnget "gkstatevarres"
   gkstatevartoggle chnget "gkstatevartoggle"
   gkstatevartype   chnget "gkstatevartype"
-
-
   if ($ON == gkstatevartoggle) then 
-
     ahp,alp,abp,abr   Statevar  aout , gkstatevarcutoff, gkstatevarres
-
     if ($LOWPASS == gkstatevartype) then 
-      aout = alp
+     aout = alp
     elseif ($HIGHPASS == gkstatevartype) then 
      aout = ahp
     elseif ($BANDPASS == gkstatevartype) then 
@@ -166,15 +156,12 @@ instr 1
   endif 
 
   ; Reverb
-  gkreverbamount  chnget "gkreverbamount"  
+  gkreverbamount      chnget "gkreverbamount"  
   gkreverbbrightness  chnget "gkreverbbrightness"  
   arev1, arev2 reverbsc aout,aout, gkreverbamount, gkreverbbrightness 
 
-
   outs aout + arev1, aout + arev2 
-
 endin 
-
 </CsInstruments> 
 <CsScore> 
 i1 0 36000 
