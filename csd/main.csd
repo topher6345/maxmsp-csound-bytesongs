@@ -13,10 +13,13 @@ nchnls = 2
 #include 'taptube.csd'
 #include 'ensemble.csd'
 #include 'statevar.csd'
+#include 'statevarenum.csd'
 
 
 #define ON #1#
 #define OFF #0#
+
+
 
   ; Global Sine Wave
 	gir 	ftgen	 123, 0, 8192, 10, 1
@@ -33,22 +36,24 @@ instr 1
   gkslider6       chnget "gkslider6"
   gkslider7       chnget "gkslider7"
 
-
   ; Bytesong Generator
   gkslider1 chnget "gkslider1"
   aout = (kt*((kt>>10|kt>>8)&63&kt>>4*gkslider1)) & 255 
   aout = aout << 7 
+  kt = kt+1 
 
   ; Filter 
   gkmooglpcutoff chnget "gkmooglpcutoff"  
   gkmooglpcutoff portk   gkmooglpcutoff, .05  
   gkmooglpres     chnget "gkmooglpres"
-  aout Moogladder aout, gkmooglpcutoff, gkmooglpres  
-  aout dcblock aout 
-  kt = kt+1 
+  gkmooglptoggle chnget "gkmooglptoggle" 
+  if ($ON == gkmooglptoggle) then  
+    aout Moogladder aout, gkmooglpcutoff, gkmooglpres  
+    aout dcblock aout 
+  endif
 
-  ; Reverb
-  gkreverbamount  chnget "gkreverbamount"  
+
+  ; Tremolo (Amplitude Modulation)
   gktremdepth     chnget "gktremdepth"
   gktremspeed     chnget "gktremspeed"
 	alfo 	poscil3	 gktremdepth,gktremspeed , gir 
@@ -91,7 +96,6 @@ instr 1
     endif 
   endif 
 
-
   ; Tube Warmth
   gktubetoggle     chnget "gktubetoggle"
   gkdrive          chnget "gkdrive"
@@ -101,7 +105,6 @@ instr 1
     aout balance atube, aout 
   endif
 
-
   ; Fuzz
   gktanhamount chnget "gktanhamount"
   gktanhtoggle chnget "gktanhtoggle"
@@ -110,12 +113,42 @@ instr 1
     aout balance atanh, aout 
   endif
 
+  ; Safety
+
+  aout butlp aout , 18000
+
+
+  ; Statevar
+
+  gkstatevarcutoff chnget "gkstatevarcutoff"
+  gkstatevarres chnget "gkstatevarres"
+  gkstatevartoggle chnget "gkstatevartoggle"
+  gkstatevartype   chnget "gkstatevartype"
+
+
+  if ($ON == gkstatevartoggle) then 
+
+    ahp,alp,abp,abr   Statevar  aout , gkstatevarcutoff, gkstatevarres
+
+    if ($LOWPASS == gkstatevartype) then 
+      aout = alp
+    elseif ($HIGHPASS == gkstatevartype) then 
+     aout = ahp
+    elseif ($BANDPASS == gkstatevartype) then 
+     aout = abp
+    elseif ($BANDREJECT == gkstatevartype) then 
+     aout = abr
+    endif 
+  endif 
 
   ; Reverb
-  arev1, arev2 reverbsc aout,aout, gkreverbamount, 11000 
-  
-  
+  gkreverbamount  chnget "gkreverbamount"  
+  gkreverbbrightness  chnget "gkreverbbrightness"  
+  arev1, arev2 reverbsc aout,aout, gkreverbamount, gkreverbbrightness 
+
+
   outs aout + arev1, aout + arev2 
+
 endin 
 
 </CsInstruments> 
