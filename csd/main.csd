@@ -52,6 +52,36 @@ instr 1
     aout dcblock aout 
   endif
 
+  ; Fuzz
+  gktanhamount chnget "gktanhamount"
+  gktanhtoggle chnget "gktanhtoggle"
+  if ($ON == gktanhtoggle) then 
+    atanh = tanh(aout*gktanhamount)
+    aout balance atanh, aout 
+  endif
+
+  ; Moog LFO 
+  gkmooglplfocenter chnget "gkmooglplfocenter"
+  gkmooglplfodepth  chnget "gkmooglplfodepth"
+  gkmooglplfospeed  chnget "gkmooglplfospeed"
+  gkmooglplfores    chnget "gkmooglplfores"
+
+  gkmooglplfotoggle chnget "gkmooglplfotoggle"
+  if ($ON == gkmooglplfotoggle) then  
+    
+    kmooglfo  poscil3  gkmooglplfodepth,gkmooglplfospeed , gir 
+
+    kmooglplfofreq = gkmooglplfocenter + kmooglfo
+
+    if (kmooglplfofreq > 19000) then 
+      kmooglplfofreq = 19000
+    elseif (kmooglplfofreq < 40) then
+      kmooglplfofreq = 40
+    endif 
+
+    aout Moogladder aout,kmooglplfofreq , gkmooglplfores  
+  endif
+
 
   ; Tremolo (Amplitude Modulation)
   gktremdepth     chnget "gktremdepth"
@@ -105,13 +135,7 @@ instr 1
     aout balance atube, aout 
   endif
 
-  ; Fuzz
-  gktanhamount chnget "gktanhamount"
-  gktanhtoggle chnget "gktanhtoggle"
-  if ($ON == gktanhtoggle) then 
-    atanh = tanh(aout*gktanhamount)
-    aout balance atanh, aout 
-  endif
+
 
   ; Safety
 
