@@ -19,7 +19,7 @@ nchnls = 2
 #define ON #1#
 #define OFF #0#
 
-
+gadelayout init 0
 
   ; Global Sine Wave
 	gir 	ftgen	 123, 0, 8192, 10, 1
@@ -154,6 +154,19 @@ instr 1
      aout = abr
     endif 
   endif 
+
+
+  gkdelaytoggle chnget "gkdelaytoggle"
+  if ($ON == gkdelaytoggle) then
+    gkdelayfeedback chnget "gkdelayfeedback"
+    gkdelaytime chnget "gkdelaytime"
+    gkdelayfilter chnget "gkdelayfilter"
+    adelayin = (gadelayout *.9999) * gkdelayfeedback + aout
+    gadelayout vdelay3 adelayin, gkdelaytime *1000, 4000
+    gadelayout moogladder gadelayout, gkdelayfilter, .1
+    aout = aout *.5 + gadelayout *.5
+  endif
+
 
   ; Reverb
   gkreverbamount      chnget "gkreverbamount"  
