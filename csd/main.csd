@@ -1,10 +1,10 @@
-<CsoundSynthesizer> 
-  <CsOptions> 
-  </CsOptions> 
-<CsInstruments> 
-sr     = 44100 
-ksmps  = 1       
-nchnls = 2 
+<CsoundSynthesizer>
+  <CsOptions>
+  </CsOptions>
+<CsInstruments>
+sr     = 44100
+ksmps  = 1
+nchnls = 2
 
 #include 'pitchshifter.csd'
 #include 'moogladder.csd'
@@ -24,11 +24,11 @@ gadelayout init 0
   ; Global Sine Wave
 	gir 	ftgen	 123, 0, 8192, 10, 1
 
-instr 1 
+instr 1
 
  ain inch 1
-  
-  kt init 0 
+
+  kt init 0
   av init 0
 
   gkincrement     chnget "gkincrement"
@@ -40,64 +40,67 @@ instr 1
 
   ; Bytesong Generator
   gkbyte1 chnget "gkbyte1"
-  aout = (kt*((kt>>10|kt>>8)&63&kt>>4*gkbyte1)) & 255 
-  aout = aout << 7 
-  
-  ;aout = ain * aout 
-  kt = kt+gkincrement 
+  gkbyte2 chnget "gkbyte2"
+  gkbyte3 chnget "gkbyte3"
+  aout = (kt*((kt>>10|kt>>8)&gkbyte2&kt>>4*gkbyte1)) & gkbyte3
+  aout = aout << 7
+  aout dcblock2 aout
 
-  ; Filter 
-  gkmooglpcutoff  chnget "gkmooglpcutoff"  
-  gkmooglpcutoff  portk   gkmooglpcutoff, .05  
+  ;aout = ain * aout
+  kt = kt+gkincrement
+
+  ; Filter
+  gkmooglpcutoff  chnget "gkmooglpcutoff"
+  gkmooglpcutoff  portk   gkmooglpcutoff, .05
   gkmooglpres     chnget "gkmooglpres"
-  gkmooglptoggle  chnget "gkmooglptoggle" 
-  if ($ON == gkmooglptoggle) then  
-    aout Moogladder aout, gkmooglpcutoff, gkmooglpres  
-    aout dcblock aout 
+  gkmooglptoggle  chnget "gkmooglptoggle"
+  if ($ON == gkmooglptoggle) then
+    aout Moogladder aout, gkmooglpcutoff, gkmooglpres
+    aout dcblock aout
   endif
 
   ; Fuzz
   gktanhamount chnget "gktanhamount"
   gktanhtoggle chnget "gktanhtoggle"
-  if ($ON == gktanhtoggle) then 
+  if ($ON == gktanhtoggle) then
     atanh = tanh(aout*gktanhamount)
-    aout balance atanh, aout 
+    aout balance atanh, aout
   endif
 
-  ; Moog LFO 
+  ; Moog LFO
   gkmooglplfocenter chnget "gkmooglplfocenter"
   gkmooglplfodepth  chnget "gkmooglplfodepth"
   gkmooglplfospeed  chnget "gkmooglplfospeed"
   gkmooglplfores    chnget "gkmooglplfores"
   gkmooglplfotoggle chnget "gkmooglplfotoggle"
-  if ($ON == gkmooglplfotoggle) then  
-    kmooglfo  poscil3  gkmooglplfodepth,gkmooglplfospeed , gir 
+  if ($ON == gkmooglplfotoggle) then
+    kmooglfo  poscil3  gkmooglplfodepth,gkmooglplfospeed , gir
     kmooglplfofreq = gkmooglplfocenter + kmooglfo
-        if (kmooglplfofreq > 19000) then 
+        if (kmooglplfofreq > 19000) then
             kmooglplfofreq = 19000
     elseif (kmooglplfofreq < 40) then
             kmooglplfofreq = 40
-    endif 
-    aout Moogladder aout,kmooglplfofreq , gkmooglplfores  
+    endif
+    aout Moogladder aout,kmooglplfofreq , gkmooglplfores
   endif
 
 
   ; Tremolo (Amplitude Modulation)
   gktremdepth     chnget "gktremdepth"
   gktremspeed     chnget "gktremspeed"
-	alfo 	poscil3	 gktremdepth,gktremspeed , gir 
+	alfo 	poscil3	 gktremdepth,gktremspeed , gir
   alfo = alfo*2 + 1
   aout = aout *alfo
 
   ; Pitch Shift
   gkpitchshift chnget "gkpitchshift"
   aout freqShift aout, gkpitchshift
- 
+
   ; Vibrato (Frequency Modulation)
   gkvibratotoggle chnget "gkvibratotoggle"
   gkvibratospeed  chnget "gkvibratospeed"
-  gkvibratodepth  chnget "gkvibratodepth"     
-  kvibrato  poscil3  gkvibratospeed,gkvibratodepth , gir 
+  gkvibratodepth  chnget "gkvibratodepth"
+  kvibrato  poscil3  gkvibratospeed,gkvibratodepth , gir
   if ($ON == gkvibratotoggle) then
       aout freqShift aout, kvibrato
   endif
@@ -106,32 +109,32 @@ instr 1
   gkvoweltoggle chnget "gkvoweltoggle"
   gkvowel       chnget "gkvowel"
   gkmode        chnget "gkmode"
-  if ($ON == gkvoweltoggle) then 
-    if ($BASS == gkmode) then 
+  if ($ON == gkvoweltoggle) then
+    if ($BASS == gkmode) then
       avowel  vowel aout, gkvowel, $BASS
-      aout balance avowel, aout 
-    elseif ($TENOR == gkmode) then 
+      aout balance avowel, aout
+    elseif ($TENOR == gkmode) then
       avowel  vowel aout, gkvowel, $TENOR
-      aout balance avowel, aout 
-    elseif ($COUNTERTENOR == gkmode) then 
+      aout balance avowel, aout
+    elseif ($COUNTERTENOR == gkmode) then
       avowel  vowel aout, gkvowel, $COUNTERTENOR
-      aout balance avowel, aout 
-    elseif ($ALTO == gkmode) then 
+      aout balance avowel, aout
+    elseif ($ALTO == gkmode) then
       avowel  vowel aout, gkvowel, $ALTO
-      aout balance avowel, aout 
-    elseif ($SOPRANO == gkmode) then 
+      aout balance avowel, aout
+    elseif ($SOPRANO == gkmode) then
       avowel  vowel aout, gkvowel, $SOPRANO
-      aout balance avowel, aout 
-    endif 
-  endif 
+      aout balance avowel, aout
+    endif
+  endif
 
   ; Tube Warmth
   gktubetoggle     chnget "gktubetoggle"
   gkdrive          chnget "gkdrive"
   gkblend          chnget "gkblend"
-  if ($ON == gktubetoggle) then 
+  if ($ON == gktubetoggle) then
     atube warmth aout, gkdrive, gkblend
-    aout balance atube, aout 
+    aout balance atube, aout
   endif
 
   ; Safety
@@ -142,18 +145,18 @@ instr 1
   gkstatevarres    chnget "gkstatevarres"
   gkstatevartoggle chnget "gkstatevartoggle"
   gkstatevartype   chnget "gkstatevartype"
-  if ($ON == gkstatevartoggle) then 
+  if ($ON == gkstatevartoggle) then
     ahp,alp,abp,abr   Statevar  aout , gkstatevarcutoff, gkstatevarres
-    if ($LOWPASS == gkstatevartype) then 
+    if ($LOWPASS == gkstatevartype) then
      aout = alp
-    elseif ($HIGHPASS == gkstatevartype) then 
+    elseif ($HIGHPASS == gkstatevartype) then
      aout = ahp
-    elseif ($BANDPASS == gkstatevartype) then 
+    elseif ($BANDPASS == gkstatevartype) then
      aout = abp
-    elseif ($BANDREJECT == gkstatevartype) then 
+    elseif ($BANDREJECT == gkstatevartype) then
      aout = abr
-    endif 
-  endif 
+    endif
+  endif
 
 
   gkdelaytoggle chnget "gkdelaytoggle"
@@ -169,14 +172,14 @@ instr 1
 
 
   ; Reverb
-  gkreverbamount      chnget "gkreverbamount"  
-  gkreverbbrightness  chnget "gkreverbbrightness"  
-  arev1, arev2 reverbsc aout,aout, gkreverbamount, gkreverbbrightness 
+  gkreverbamount      chnget "gkreverbamount"
+  gkreverbbrightness  chnget "gkreverbbrightness"
+  arev1, arev2 reverbsc aout,aout, gkreverbamount, gkreverbbrightness
 
-  outs aout + arev1, aout + arev2 
-endin 
-</CsInstruments> 
-<CsScore> 
-i1 0 36000 
-</CsScore> 
-</CsoundSynthesizer> 
+  outs aout + arev1, aout + arev2
+endin
+</CsInstruments>
+<CsScore>
+i1 0 36000
+</CsScore>
+</CsoundSynthesizer>

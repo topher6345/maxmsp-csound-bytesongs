@@ -147,6 +147,9 @@ aprevout = kout
 #undef TAP_M
 #undef TAP_EPS
 
+aout dcblock2 aout
+aout butterhp aout, 50
+
 xout aout
 
 	endop
