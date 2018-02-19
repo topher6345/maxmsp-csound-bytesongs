@@ -40,8 +40,11 @@ instr 1
 
   ; Bytesong Generator
   gkbyte1 chnget "gkbyte1"
+  gkbyte1  portk   gkbyte1, 0.100
   gkbyte2 chnget "gkbyte2"
+  gkbyte2  portk   gkbyte2, 0.100
   gkbyte3 chnget "gkbyte3"
+  gkbyte3  portk   gkbyte3, 0.100
   aout = (kt*((kt>>10|kt>>8)&gkbyte2&kt>>4*gkbyte1)) & gkbyte3
   aout = aout << 7
   aout dcblock2 aout
@@ -56,7 +59,7 @@ instr 1
   gkmooglptoggle  chnget "gkmooglptoggle"
   if ($ON == gkmooglptoggle) then
     aout Moogladder aout, gkmooglpcutoff, gkmooglpres
-    aout dcblock aout
+    aout dcblock2 aout
   endif
 
   ; Fuzz
@@ -64,6 +67,7 @@ instr 1
   gktanhtoggle chnget "gktanhtoggle"
   if ($ON == gktanhtoggle) then
     atanh = tanh(aout*gktanhamount)
+    atanh dcblock2 atanh
     aout balance atanh, aout
   endif
 
@@ -82,6 +86,7 @@ instr 1
             kmooglplfofreq = 40
     endif
     aout Moogladder aout,kmooglplfofreq , gkmooglplfores
+    aout dcblock2 aout
   endif
 
 
@@ -95,13 +100,14 @@ instr 1
   ; Pitch Shift
   gkpitchshift chnget "gkpitchshift"
   aout freqShift aout, gkpitchshift
+  aout dcblock2 aout
 
   ; Vibrato (Frequency Modulation)
   gkvibratotoggle chnget "gkvibratotoggle"
   gkvibratospeed  chnget "gkvibratospeed"
   gkvibratodepth  chnget "gkvibratodepth"
-  kvibrato  poscil3  gkvibratospeed,gkvibratodepth , gir
   if ($ON == gkvibratotoggle) then
+      kvibrato  poscil3  gkvibratospeed,gkvibratodepth , gir
       aout freqShift aout, kvibrato
   endif
 
@@ -133,12 +139,15 @@ instr 1
   gkdrive          chnget "gkdrive"
   gkblend          chnget "gkblend"
   if ($ON == gktubetoggle) then
+    aout dcblock2 aout
     atube warmth aout, gkdrive, gkblend
+    aout dcblock2 aout
+    atube dcblock2 atube
     aout balance atube, aout
   endif
 
   ; Safety
-  aout butlp aout , 18000
+  aout butlp aout , 20000
 
   ; Statevar
   gkstatevarcutoff chnget "gkstatevarcutoff"
@@ -164,7 +173,7 @@ instr 1
     gkdelayfeedback chnget "gkdelayfeedback"
     gkdelaytime chnget "gkdelaytime"
     gkdelayfilter chnget "gkdelayfilter"
-    adelayin = (gadelayout *.9999) * gkdelayfeedback + aout
+    adelayin = (gadelayout * 0.9999) * gkdelayfeedback + aout
     gadelayout vdelay3 adelayin, gkdelaytime *1000, 4000
     gadelayout moogladder gadelayout, gkdelayfilter, .1
     aout = aout *.5 + gadelayout *.5
@@ -174,6 +183,7 @@ instr 1
   ; Reverb
   gkreverbamount      chnget "gkreverbamount"
   gkreverbbrightness  chnget "gkreverbbrightness"
+  aout dcblock2 aout
   arev1, arev2 reverbsc aout,aout, gkreverbamount, gkreverbbrightness
 
   outs aout + arev1, aout + arev2
